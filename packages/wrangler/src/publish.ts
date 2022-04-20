@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { URLSearchParams } from "node:url";
 import tmp from "tmp-promise";
@@ -30,6 +30,7 @@ type Props = {
   tsconfig: string | undefined;
   experimentalPublic: boolean;
   minify: boolean | undefined;
+  outDir: string | undefined;
 };
 
 function sleep(ms: number) {
@@ -68,14 +69,19 @@ export default async function publish(props: Props): Promise<void> {
     "A [site] definition requires a `bucket` field with a path to the site's public directory."
   );
 
-  const destination = await tmp.dir({ unsafeCleanup: true });
+  if (props.outDir) {
+    // we're using a custom output directory,
+    // so let's first ensure it exists
+    mkdirSync(props.outDir, { recursive: true });
+  }
+
+  const destination = props.outDir ?? (await tmp.dir({ unsafeCleanup: true }));
   try {
     const envName = props.env ?? "production";
 
     const { format } = props.entry;
 
     if (props.experimentalPublic && format === "service-worker") {
-      // TODO: check config too
       throw new Error(
         "You cannot publish in the service-worker format with a public directory."
       );
@@ -101,7 +107,7 @@ export default async function publish(props: Props): Promise<void> {
 
     const { modules, resolvedEntryPointPath, bundleType } = await bundleWorker(
       props.entry,
-      destination.path,
+      typeof destination === "string" ? destination : destination.path,
       {
         serveAssetsFromWorker: props.experimentalPublic,
         jsxFactory,
@@ -367,7 +373,11 @@ export default async function publish(props: Props): Promise<void> {
       console.log("No publish targets for", workerName, formatTime(deployMs));
     }
   } finally {
-    await destination.cleanup();
+    if (typeof destination !== "string") {
+      // this means we're using a temp dir,
+      // so let's clean up before we leave
+      await destination.cleanup();
+    }
   }
 }
 

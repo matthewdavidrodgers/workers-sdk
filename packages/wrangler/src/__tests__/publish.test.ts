@@ -3905,6 +3905,27 @@ export default{
       `);
     });
   });
+
+  describe("outdir", () => {
+    it("should generate built assets at --outdir if specified", async () => {
+      writeWranglerToml();
+      writeWorkerSource();
+      mockSubDomainRequest();
+      mockUploadWorkerRequest();
+      await runWrangler("publish index.js --outdir some-dir");
+      expect(fs.existsSync("some-dir/index.js")).toBe(true);
+      expect(fs.existsSync("some-dir/index.js.map")).toBe(true);
+      expect(std).toMatchInlineSnapshot(`
+        Object {
+          "err": "",
+          "out": "Uploaded test-name (TIMINGS)
+        Published test-name (TIMINGS)
+          test-name.test-sub-domain.workers.dev",
+          "warn": "",
+        }
+      `);
+    });
+  });
 });
 
 /** Write mock assets to the file system so they can be uploaded. */
