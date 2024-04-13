@@ -50,6 +50,7 @@ import type { EsbuildBundle } from "./use-esbuild";
  */
 function useDevRegistry(
 	name: string | undefined,
+  dispatchNamespace: string | undefined,
 	services: Config["services"] | undefined,
 	durableObjects: Config["durable_objects"] | undefined,
 	mode: "local" | "remote"
@@ -57,6 +58,8 @@ function useDevRegistry(
 	const [workers, setWorkers] = useState<WorkerRegistry>({});
 
 	const hasFailedToFetch = useRef(false);
+
+  const workerIdentifier = dispatchNamespace ? `${dispatchNamespace}:${name}` : name;
 
 	useEffect(() => {
 		// Let's try to start registry
@@ -99,7 +102,7 @@ function useDevRegistry(
 		return () => {
 			interval && clearInterval(interval);
 			Promise.allSettled([
-				name ? unregisterWorker(name) : Promise.resolve(),
+				workerIdentifier ? unregisterWorker(workerIdentifier) : Promise.resolve(),
 				stopWorkerRegistry(),
 			]).then(
 				([unregisterResult, stopRegistryResult]) => {
@@ -179,6 +182,7 @@ export type DevProps = {
 	sendMetrics: boolean | undefined;
 	testScheduled: boolean | undefined;
 	projectRoot: string | undefined;
+  localDispatchNamespace: string | undefined;
 };
 
 export function DevImplementation(props: DevProps): JSX.Element {
@@ -333,6 +337,7 @@ function DevSession(props: DevSessionProps) {
 
 	const workerDefinitions = useDevRegistry(
 		props.name,
+    props.localDispatchNamespace,
 		props.bindings.services,
 		props.bindings.durable_objects,
 		props.local ? "local" : "remote"
@@ -416,7 +421,8 @@ function DevSession(props: DevSessionProps) {
 				url,
 				props.name,
 				proxyData.internalDurableObjects,
-				proxyData.entrypointAddresses
+				proxyData.entrypointAddresses,
+        props.localDispatchNamespace,
 			);
 		}
 
@@ -474,6 +480,7 @@ function DevSession(props: DevSessionProps) {
 			enablePagesAssetsServiceBinding={props.enablePagesAssetsServiceBinding}
 			sourceMapPath={bundle?.sourceMapPath}
 			services={props.bindings.services}
+      localDispatchNamespace={props.localDispatchNamespace}
 		/>
 	) : (
 		<Remote

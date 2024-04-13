@@ -97,10 +97,10 @@ function createProxyPrototypeClass(handlerSuperKlass, getUnknownPrototypeKey) {
 				return getUnknownPrototypeKey(key);
 			}
 		});
-	
+
 		return Reflect.construct(handlerSuperKlass, [ctx, env], klass);
 	}
-		
+
 	Reflect.setPrototypeOf(klass.prototype, handlerSuperKlass.prototype);
 	Reflect.setPrototypeOf(klass, handlerSuperKlass);
 
@@ -111,7 +111,7 @@ function createDurableObjectClass({ className, proxyUrl }) {
 	const klass = createProxyPrototypeClass(DurableObject, (key) => {
 		throw new Error(\`Cannot access \\\`\${className}#\${key}\\\` as Durable Object RPC is not yet supported between multiple \\\`wrangler dev\\\` sessions.\`);
 	});
-	
+
 	// Forward regular HTTP requests to the other "wrangler dev" session
 	klass.prototype.fetch = function(request) {
 		if (proxyUrl === undefined) {

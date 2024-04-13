@@ -213,6 +213,7 @@ export async function unstable_dev(
 		port: options?.port ?? 0,
 		updateCheck: options?.updateCheck ?? false,
 		experimentalVersions: undefined,
+    dispatchNamespace: undefined,
 	};
 
 	//due to Pages adoption of unstable_dev, we can't *just* disable rebuilds and watching. instead, we'll have two versions of startDev, which will converge.

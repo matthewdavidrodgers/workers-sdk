@@ -287,6 +287,18 @@ export function devOptions(yargs: CommonYargsArgv) {
 					"Show interactive dev session  (defaults to true if the terminal supports interactivity)",
 				type: "boolean",
 			})
+      .option("dispatch-namespace", {
+        type: "string",
+        describe: "Make this Worker a namespaced user worker when in local mode. Will make the Worker only accessible via a different Worker with a dispatch namespace binding",
+      })
+      .check((argv) => {
+        if (argv["dispatch-namespace"] && argv.remote) {
+          throw new UserError(
+            "--dispatch-namespace is only supported in local mode. Please just use one of either --remote or --dispatch-namespace."
+          );
+        }
+        return true;
+      })
 	);
 }
 
@@ -512,6 +524,7 @@ export async function startDev(args: StartDevOptions) {
 					sendMetrics={configParam.send_metrics}
 					testScheduled={args.testScheduled}
 					projectRoot={projectRoot}
+          localDispatchNamespace={args.dispatchNamespace}
 				/>
 			);
 		}
@@ -639,6 +652,7 @@ export async function startApiDev(args: StartDevOptions) {
 			testScheduled: args.testScheduled,
 			disableDevRegistry: args.disableDevRegistry ?? false,
 			projectRoot,
+      localDispatchNamespace: args.dispatchNamespace,
 		});
 	}
 

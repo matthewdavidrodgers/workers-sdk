@@ -53,6 +53,7 @@ export interface LocalProps {
 	testScheduled?: boolean;
 	sourceMapPath: string | undefined;
 	services: Config["services"] | undefined;
+  localDispatchNamespace: string | undefined;
 }
 
 // TODO(soon): we should be able to remove this function when we fully migrate
@@ -113,7 +114,8 @@ export function maybeRegisterLocalWorker(
 	url: URL,
 	name: string | undefined,
 	internalDurableObjects: CfDurableObject[] | undefined,
-	entrypointAddresses: WorkerEntrypointsDefinition | undefined
+	entrypointAddresses: WorkerEntrypointsDefinition | undefined,
+  dispatchNamespace: string | undefined
 ) {
 	if (name === undefined) return;
 
@@ -121,8 +123,10 @@ export function maybeRegisterLocalWorker(
 	protocol = protocol.substring(0, url.protocol.length - 1);
 	if (protocol !== "http" && protocol !== "https") return;
 
+  const workerIdentifier = dispatchNamespace ? `${dispatchNamespace}:${name}` : name;
+
 	const port = parseInt(url.port);
-	return registerWorker(name, {
+	return registerWorker(workerIdentifier, {
 		protocol,
 		mode: "local",
 		port,
@@ -134,6 +138,7 @@ export function maybeRegisterLocalWorker(
 		durableObjectsHost: url.hostname,
 		durableObjectsPort: port,
 		entrypointAddresses: entrypointAddresses,
+    dispatchNamespace: dispatchNamespace,
 	});
 }
 

@@ -1360,6 +1360,8 @@ export class Miniflare {
 			const ready = initial ? "Ready" : "Updated and ready";
 
 			const urlSafeHost = getURLSafeHost(configuredHost);
+      // TODO: if the script is namespaced, don't log this message, and instead
+      // instruct the user to invoke via a local dispatcher script
 			this.#log.info(
 				`${ready} on ${secure ? "https" : "http"}://${urlSafeHost}:${entryPort}`
 			);

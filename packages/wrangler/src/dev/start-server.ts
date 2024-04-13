@@ -190,7 +190,8 @@ export async function startDevServer(
 					url,
 					props.name,
 					proxyData.internalDurableObjects,
-					proxyData.entrypointAddresses
+					proxyData.entrypointAddresses,
+          props.localDispatchNamespace,
 				);
 
 				props.onReady?.(ip, port, proxyData);
@@ -208,6 +209,7 @@ export async function startDevServer(
 			workerDefinitions,
 			sourceMapPath: bundle?.sourceMapPath,
 			services: props.bindings.services,
+      localDispatchNamespace: props.localDispatchNamespace
 		});
 
 		return {
